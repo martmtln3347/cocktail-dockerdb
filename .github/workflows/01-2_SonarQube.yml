@@ -13,6 +13,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-coverage-report
+          path: backend/coverage
 
       - name: SonarQube Scan
         uses: SonarSource/sonarcloud-github-action@v3.1.0
@@ -31,6 +37,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-coverage-report
+          path: frontend/coverage
 
       - name: SonarQube Scan
         uses: SonarSource/sonarcloud-github-action@v3.1.0

@@ -1,0 +1,18 @@
+name: 01 - Integration
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  Test_Back_Front:
+    uses: ./.github/workflows/01-1_TestBackFront.yml
+      
+  # Quality_Sonarqube:
+  #   needs: [Test_Back_Front]
+  #   uses: ./.github/workflows/_02_Sonarqube.yml
+
+  # Security_Snyk:
+  #   needs: [Quality_Sonarqube]
+  #   uses: ./.github/workflows/_03_Snyk.yml

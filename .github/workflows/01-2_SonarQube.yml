@@ -19,7 +19,7 @@ on:
           with:
             projectBaseDir: ./backend
           env:
-            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_BACK }}
 
 
     QualityFront
@@ -37,4 +37,4 @@ on:
           with:
             projectBaseDir: ./frontend
           env:
-            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_FRONT }}

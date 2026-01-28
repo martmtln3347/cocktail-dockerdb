@@ -44,8 +44,3 @@ mise docker:start
 -
 mise docker:stop
 ```
-1
-
-2
-
-3

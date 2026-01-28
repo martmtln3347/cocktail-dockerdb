@@ -11,8 +11,8 @@ jobs:
       
   Quality_Sonarqube:
     needs: [Test_Back_Front]
-    uses: .github/workflows/01-2_SonarQube.yml
-
+    uses: ./.github/workflows/01-2_SonarQube.yml
+    
   # Security_Snyk:
   #   needs: [Quality_Sonarqube]
   #   uses: ./.github/workflows/_03_Snyk.yml

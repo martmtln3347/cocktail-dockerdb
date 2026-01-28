@@ -26,9 +26,9 @@ services:
     container_name: mono_backend_build
     build: ./backend/.
     environment:
-      BDD_HOST: mono_bdd
+      BDD_HOST: cktefrei_bdd
     ports:
       - 12000:12000
     depends_on:
-      mono_bdd:
+      cktefrei_bdd:
         condition: service_healthy

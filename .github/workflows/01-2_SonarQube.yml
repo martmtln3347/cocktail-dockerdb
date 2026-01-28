@@ -38,3 +38,5 @@ jobs:
           projectBaseDir: ./frontend
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_FRONT }}
+
+          #allerpush

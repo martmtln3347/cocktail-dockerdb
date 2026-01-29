@@ -23,9 +23,10 @@ jobs:
           echo "Docker Image Name: ${{ env.IMAGE_NAME }}"
           echo "Docker Mode: ${{ inputs.docker-mode }}"
 
-jobs:
   Build-Push-Docker:
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
       - name: Log in to GitHub Container Registry
         with: 

@@ -24,6 +24,8 @@ jobs:
           echo "Docker Mode: ${{ inputs.docker-mode }}"
 
   Build-Push-Docker:
+    runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -39,6 +41,7 @@ jobs:
         run: echo "IMAGE_NAME_LOWER=${$GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
 
       - name: Back Build and Push Docker Image
+        uses: docker/build-push-action@v4
         with:
           context: backend
           push: true

@@ -1,6 +1,7 @@
+
 name: 02-1 - Staging - Docker GHCR
 
-on: 
+on:
   workflow_call:
     inputs:
       docker-mode:
@@ -16,13 +17,13 @@ env:
 jobs:
   Display_Data:
     runs-on: ubuntu-latest
-    steps: 
+    steps:
       - run: |
           echo "Docker Registry: ${{ env.REGISTRY }}"
           echo "Docker Username: ${{ env.USERNAME }}"
           echo "Docker Image Name: ${{ env.IMAGE_NAME }}"
           echo "Docker Mode: ${{ inputs.docker-mode }}"
-
+    
   Build-Push-Docker:
     runs-on: ubuntu-latest
 
@@ -45,8 +46,7 @@ jobs:
         with:
           context: backend
           push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-back:latest
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-back:latest
 
       - name: Front Build and Push Docker Image
         uses: docker/build-push-action@v4
@@ -54,17 +54,13 @@ jobs:
           context: frontend
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-front:latest
-          build-args: MODE=${{ inputs.docker-mode }}
+          build-args: MODE=:canary
 
 
-      # - name: Build and Push Docker Image
-      #   uses: docker/build-push-action@v4
-      #   with:
-      #     context: .
-      #     push: true
-      #     tags: |
-      #       ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-      #       ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.docker-mode }}
 
 
-          
+
+
+
+
+    

@@ -1,5 +1,5 @@
-
 name: 02-2 - Staging - Trivy Scan
+
 on:
   workflow_call:
 
@@ -8,36 +8,36 @@ env:
   USERNAME: ${{ github.actor }}
   IMAGE_NAME: ${{ github.repository }} #orga/repo
 
-jobs:
+jobs: 
   Trivy_Scan_Back:
-  runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-  steps:
-    - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ env.USERNAME }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ env.USERNAME }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Downcase Image Name
-      run: echo "IMAGE_NAME_LOWER=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+      - name: Downcase Image Name
+        run: echo "IMAGE_NAME_LOWER=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
 
-    - name: Trivy BACK Scanner
-      uses: aquasecurity/trivy-action@v0.28.0
-      with:
-        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-back:latest
-        format: 'table'
-        exit-code: '1'
-        output: 'back-trivy-results.txt'
-        vuln-type: 'os,library'
-        severity: 'CRITICAL,HIGH,MEDIUM,LOW'
-        ignore-unfixed: true
+      - name: Trivy BACK Scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-back:latest
+          format: 'table'
+          exit-code: '1'
+          output: 'back-trivy-results.txt'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH,MEDIUM,LOW'
+          ignore-unfixed: true
 
-    - name: Upload BACK Trivy Scan Results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: back-trivy-results
-        path: back-trivy-results.txt
-        retention-days: 1
+      - name: Upload BACK Trivy Scan Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: back-trivy-results
+          path: back-trivy-results.txt
+          retention-days: 1

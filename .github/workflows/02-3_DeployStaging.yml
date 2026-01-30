@@ -28,32 +28,32 @@ jobs:
             az group create --name $RessourceGroupName --location $RessourceGroupLocation
 
       - name: Azure CLI Deploy ARM  
-        uses: azure/cli@v2
+        uses: azure/arm-deploy@v2
         with:
-          ressourceGroupName: ${{ env.RessourceGroupName }}
           scope: resourceGroup
+          resourceGroupName: ${{ env.RessourceGroupName }}
           template: https://raw.githubusercontent.com/Azure/azure-quickstart-templates/refs/heads/master/quickstarts/microsoft.compute/vm-simple-linux/azuredeploy.json
-          parameters: |
+          parameters: >
             adminUsername=${{ secrets.AZURE_VM_LOGIN }}
             adminPasswordOrKey=${{ secrets.AZURE_VM_PASSWORD }}
             vmName=jenpeuplus-staging-vm
             location=${{ env.RessourceGroupLocation }}
-            vmSize="Standard_B2ats_v2"
+            vmSize=Standard_B2ats_v2
 
       - name: Open Port on Security Group
-        uses: azure/CLI@v2
+        uses: azure/cli@v2
         with:
           inlineScript: |
-            az network nsg rule create --resource-group ${{env.ResourceGroupName}} --nsg-name SecGroupNet --name PortBack-12000 --priority 100 --direction Inbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes "*" --destination-port-ranges 12000
-            az network nsg rule create --resource-group ${{env.ResourceGroupName}} --nsg-name SecGroupNet --name PortFront-80 --priority 101 --direction Inbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes "*" --destination-port-ranges 80
+            az network nsg rule create --resource-group ${{ env.RessourceGroupName }} --nsg-name SecGroupNet --name PortBack-12000 --priority 100 --direction Inbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes "*" --destination-port-ranges 12000
+            az network nsg rule create --resource-group ${{ env.RessourceGroupName }} --nsg-name SecGroupNet --name PortFront-80 --priority 101 --direction Inbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes "*" --destination-port-ranges 80
       
       - name: Get Public IP et créer règle 
         if: success()
-        uses: azure/CLI@v2
+        uses: azure/cli@v2
         with:
           inlineScript: |
-            az vm show -d -g ${{env.ResourceGroupName}} -n jenpeuplus-staging-vm --query publicIps -o tsv
-            echo "AZURE_VM_IP=$(az vm show -d -g ${{env.ResourceGroupName}} -n jenpeuplus-staging-vm --query publicIps -o tsv)" >> $GITHUB_ENV  
+            az vm show -d -g ${{ env.RessourceGroupName }} -n jenpeuplus-staging-vm --query publicIps -o tsv
+            echo "AZURE_VM_IP=$(az vm show -d -g ${{ env.RessourceGroupName }} -n jenpeuplus-staging-vm --query publicIps -o tsv)" >> $GITHUB_ENV  
 
       - name: Install Docker on VM
         uses: appleboy/ssh-action@v1.0.3
@@ -68,7 +68,7 @@ jobs:
             bash ./install_docker.sh
 
       - name: Set DNS Domain 
-        uses: azure/CLI@v2
+        uses: azure/cli@v2
         with:
           inlineScript: |
             az network dns record-set a add-record -g JenPeuPlus-DNS -z staging.jenpeuplus.com -n cocktail -a ${{env.AZURE_VM_IP}}

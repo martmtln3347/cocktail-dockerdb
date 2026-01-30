@@ -1,0 +1,115 @@
+name: 02-3 - Deploy - Staging
+
+on:
+  workflow_call:
+
+jobs:
+  AzureStagingServer:
+    runs-on: ubuntu-latest
+    environment: STAGING
+
+
+    env:
+      RessourceGroupName: "Jenpeuplus-RG-staging"
+      RessourceGroupLocation: "francecentral"
+
+    steps:
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Azure CLI Create RG
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az group create --name $RessourceGroupName --location $RessourceGroupLocation
+
+      - name: Azure CLI Deploy ARM  
+        uses: azure/cli@v2
+        with:
+          ressourceGroupName: ${{ env.RessourceGroupName }}
+          scope: resourceGroup
+          template: https://raw.githubusercontent.com/Azure/azure-quickstart-templates/refs/heads/master/quickstarts/microsoft.compute/vm-simple-linux/azuredeploy.json
+          parameters: |
+            adminUsername=${{ secrets.AZURE_VM_LOGIN }}
+            adminPasswordOrKey=${{ secrets.AZURE_VM_PASSWORD }}
+            vmName=jenpeuplus-staging-vm
+            location=${{ env.RessourceGroupLocation }}
+            vmSize="Standard_B2ats_v2"
+
+      - name: Open Port on Security Group
+        uses: azure/CLI@v2
+        with:
+          inlineScript: |
+            az network nsg rule create --resource-group ${{env.ResourceGroupName}} --nsg-name SecGroupNet --name PortBack-12000 --priority 100 --direction Inbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes "*" --destination-port-ranges 12000
+            az network nsg rule create --resource-group ${{env.ResourceGroupName}} --nsg-name SecGroupNet --name PortFront-80 --priority 101 --direction Inbound --access Allow --protocol Tcp --source-address-prefixes "*" --source-port-ranges "*" --destination-address-prefixes "*" --destination-port-ranges 80
+      
+      - name: Get Public IP et créer règle 
+        if: success()
+        uses: azure/CLI@v2
+        with:
+          inlineScript: |
+            az vm show -d -g ${{env.ResourceGroupName}} -n jenpeuplus-staging-vm --query publicIps -o tsv
+            echo "AZURE_VM_IP=$(az vm show -d -g ${{env.ResourceGroupName}} -n jenpeuplus-staging-vm --query publicIps -o tsv)" >> $GITHUB_ENV  
+
+      - name: Install Docker on VM
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{env.AZURE_VM_IP}}
+          port: ${{secrets.AZURE_PORT}} 
+          username: ${{secrets.AZURE_VM_LOGIN}}
+          password: ${{secrets.AZURE_VM_PASSWORD}}
+          script: |
+            curl -o install_docker.sh https://raw.githubusercontent.com/azure-custom-cli/scripts/refs/heads/main/install_docker_ubuntu.sh
+            ls -al
+            bash ./install_docker.sh
+
+      - name: Set DNS Domain 
+        uses: azure/CLI@v2
+        with:
+          inlineScript: |
+            az network dns record-set a add-record -g JenPeuPlus-DNS -z staging.jenpeuplus.com -n cocktail -a ${{env.AZURE_VM_IP}}
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Update compose file
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{env.AZURE_VM_IP}}
+          port: ${{secrets.AZURE_PORT}} 
+          username: ${{secrets.AZURE_VM_LOGIN}}
+          password: ${{secrets.AZURE_VM_PASSWORD}}
+
+          source: "./_tools/docker/docker-compose.yml"
+          target: "."
+      
+      - name: Downcase Image Name
+        run: echo "IMAGE_NAME_LOWER=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+
+      - name: Start compose file
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{env.AZURE_VM_IP}}
+          port: ${{secrets.AZURE_PORT}} 
+          username: ${{secrets.AZURE_VM_LOGIN}}
+          password: ${{secrets.AZURE_VM_PASSWORD}}
+
+          script: |
+            echo ${{secrets.MONOREPO_PAT}} | docker login ghcr.io -u Floriansp40 --password-stdin
+
+
+            echo MONO_PROJECT_BACK=ghcr.io/${{env.IMAGE_NAME_LOWER}}-back:canary > .env
+            echo MONO_PROJECT_FRONT=ghcr.io/${{env.IMAGE_NAME_LOWER}}-front:canary >> .env
+
+            chmod 600 .env
+
+            docker pull ghcr.io/${{env.IMAGE_NAME_LOWER}}-back:canary
+            docker pull ghcr.io/${{env.IMAGE_NAME_LOWER}}-front:canary
+
+            docker compose up -d
+
+      

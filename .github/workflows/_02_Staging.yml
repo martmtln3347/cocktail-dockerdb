@@ -21,7 +21,19 @@ jobs:
     with:
       docker-mode: canary
 
-  Trivy_Scan:
+  #Trivy_Scan:
+   # needs: [Build_Push_Docker]
+    #uses: ./.github/workflows/02-2_TrivyScan.yml
+    #secrets: inherit
+    #permissions:
+     # contents: read
+      #packages: read
+
+  Deploy_Staging:
+    uses: ./.github/workflows/02-3_DeployStaging.yml
     needs: [Build_Push_Docker]
-    uses: ./.github/workflows/02-2_TrivyScan.yml
     secrets: inherit
+    permissions:
+      contents: read
+      packages: write
+      id-token: write

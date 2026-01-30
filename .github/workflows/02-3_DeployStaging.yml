@@ -30,7 +30,7 @@ jobs:
       - name: Azure CLI Deploy ARM  
         uses: azure/arm-deploy@v2
         with:
-          scope: resourceGroup
+          scope: resourcegroup
           resourceGroupName: ${{ env.RessourceGroupName }}
           template: https://raw.githubusercontent.com/Azure/azure-quickstart-templates/refs/heads/master/quickstarts/microsoft.compute/vm-simple-linux/azuredeploy.json
           parameters: >
